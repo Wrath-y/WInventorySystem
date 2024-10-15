@@ -3,15 +3,13 @@
 
 #include "InventorySystem.h"
 
+#include "Net/UnrealNetwork.h"
+
 
 // Sets default values for this component's properties
 UInventorySystem::UInventorySystem()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
+	SetIsReplicatedByDefault(true);
 }
 
 
@@ -24,13 +22,11 @@ void UInventorySystem::BeginPlay()
 	
 }
 
-
-// Called every frame
-void UInventorySystem::TickComponent(float DeltaTime, ELevelTick TickType,
-                                     FActorComponentTickFunction* ThisTickFunction)
+void UInventorySystem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// ...
+	// 注册需要复制的变量
+	DOREPLIFETIME(UInventorySystem, InventorySize);
+	DOREPLIFETIME(UInventorySystem, Content);
 }
-
