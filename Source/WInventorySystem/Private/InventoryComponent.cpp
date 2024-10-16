@@ -3,6 +3,7 @@
 
 #include "InventoryComponent.h"
 
+#include "Def.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -22,7 +23,7 @@ void UInventoryComponent::InitializeInventory(int SlotCount)
 	
 }
 
-bool UInventoryComponent::AddItemToInventory(FInventoryItem* NewItem, int Quantity)
+bool UInventoryComponent::AddItemToInventory(const FInventoryItem& NewItem, int Quantity)
 {
 	for (FInventorySlot& Slot : InventorySlots)
 	{
@@ -35,7 +36,7 @@ bool UInventoryComponent::AddItemToInventory(FInventoryItem* NewItem, int Quanti
 
 	for (FInventorySlot& Slot : InventorySlots)
 	{
-		if (Slot.Item == nullptr)
+		if ((Slot.Item.IsValid()))
 		{
 			Slot.AddItem(NewItem, Quantity);
 			return true;
@@ -49,9 +50,9 @@ void UInventoryComponent::SortByCategory()
 {
 	InventorySlots.Sort([](const FInventorySlot& A, const FInventorySlot& B)
 	{
-		if (A.Item && B.Item)
+		if (A.Item.IsValid() && B.Item.IsValid())
 		{
-			return A.Item->Category < B.Item->Category && A.Item->Type < B.Item->Type; // 直接比较FName
+			return A.Item.Category < B.Item.Category && A.Item.Type < B.Item.Type; // 直接比较FName
 		}
 		return false;
 	});
@@ -73,23 +74,23 @@ void UInventoryComponent::UseItem(int SlotIndex)
 	{
 		FInventorySlot& Slot = InventorySlots[SlotIndex];
 
-		if (Slot.Item != nullptr)
+		if (Slot.Item.IsValid())
 		{
-			switch (Slot.Item->Category)
+			switch (Slot.Item.Category)
 			{
 			case EItemCategory::Consumable:
 				// 使用消耗品逻辑
 					Slot.Quantity--;
 				if (Slot.Quantity <= 0)
 				{
-					Slot.Item = nullptr;
+					Slot.Item = FInventoryItem();
 					Slot.Quantity = 0;
 				}
 				break;
 
 			case EItemCategory::Weapon:
 				// 装备武器逻辑
-					EquipWeapon(*Slot.Item);
+					EquipWeapon(Slot.Item);
 				break;
 
 				// 其他类型处理

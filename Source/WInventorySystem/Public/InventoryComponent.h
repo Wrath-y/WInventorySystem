@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Def.h"
 #include "Components/ActorComponent.h"
-#include "Def/Slot.h"
 #include "InventoryComponent.generated.h"
 
 UCLASS(Blueprintable, ClassGroup=("Wrath"), meta=(BlueprintSpawnableComponent))
@@ -23,7 +23,7 @@ public:
 
 	void static InitializeInventory(int SlotCount);
 
-	bool AddItemToInventory(FInventoryItem* NewItem, int Quantity);
+	bool AddItemToInventory(const FInventoryItem& NewItem, int Quantity);
 
 	void SortByCategory();
 
