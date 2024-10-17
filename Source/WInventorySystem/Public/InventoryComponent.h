@@ -16,23 +16,32 @@ public:
 	UInventoryComponent();
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Inventory", Replicated)
-	int MaxSlots;
+	int MaxSlotsNum;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Inventory", Replicated)
-	TArray<FInventorySlot> InventorySlots;
+	TArray<FInventorySlot> Slots;
 
-	void static InitializeInventory(int SlotCount);
-
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
+	void InitializeInventory(int SlotCount);
+	
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
 	bool AddItemToInventory(const FInventoryItem& NewItem, int Quantity);
 
-	void SortByCategory();
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
+	void SortInventory();
 
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
 	void SwapItems(int IndexA, int IndexB);
 
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
+	void DragItem(int FromSlotIndex, int ToSlotIndex);
+
 	// 消耗品：减少数量，当数量为0时移除该物品
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
 	void UseItem(int SlotIndex);
 
 	// 武器：触发装备武器的逻辑
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="Inventory")
 	void EquipWeapon(const FInventoryItem& WeaponItem);
 protected:
 	virtual void BeginPlay() override;

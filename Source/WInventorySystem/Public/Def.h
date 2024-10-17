@@ -6,6 +6,7 @@
 UENUM(BlueprintType)
 enum class EItemCategory : uint8
 {
+	None UMETA(DisplayName = "None"),
 	Consumable UMETA(DisplayName = "消耗品"),
 	Weapon UMETA(DisplayName = "武器"),
 	Armor UMETA(DisplayName = "防具"),
@@ -15,6 +16,7 @@ enum class EItemCategory : uint8
 UENUM(BlueprintType)
 enum class EItemType : uint8
 {
+	None UMETA(DisplayName = "None"),
 	HPUP UMETA(DisplayName = "恢复HP"),
 	MPUP UMETA(DisplayName = "恢复MP"),
 	OneHandedWeapon UMETA(DisplayName = "单手武器"),
@@ -24,7 +26,7 @@ enum class EItemType : uint8
 };
 
 USTRUCT(BlueprintType)
-struct FInventoryItem
+struct WINVENTORYSYSTEM_API FInventoryItem
 {
 	GENERATED_BODY()
 
@@ -52,14 +54,32 @@ struct FInventoryItem
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Inventory Item")
 	int MaxStackSize;
 
+	FInventoryItem()
+	{
+		ID = 0;
+		Name = "";
+		Category = EItemCategory::None;
+		Type = EItemType::None;
+		Description = "";
+		Icon = nullptr;
+		Class = nullptr;
+		MaxStackSize = 1;  // 默认不可堆叠
+	}
+
 	bool IsValid() const
 	{
 		return ID > 0 && Name.Len() > 0;
 	}
+
+	// 判断是否是相同的物品
+	bool IsSameItem(const FInventoryItem& OtherItem) const
+	{
+		return ID == OtherItem.ID && Name == OtherItem.Name && Category == OtherItem.Category && Type == OtherItem.Type;
+	}
 };
 
 USTRUCT(BlueprintType)
-struct FInventorySlot
+struct WINVENTORYSYSTEM_API FInventorySlot
 {
 	GENERATED_BODY()
 
@@ -67,23 +87,40 @@ struct FInventorySlot
 	FInventoryItem Item;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Inventory Slot")
-	int Quantity;
+	int CurrentStackSize;
 
-	bool CanAddItem(const FInventoryItem NewItem, int Amount) const
+	FInventorySlot()
 	{
-		return Item.IsValid() && Item.ID == NewItem.ID && Quantity + Amount <= Item.MaxStackSize;
+		CurrentStackSize = 0;
+	}
+
+	bool IsEmpty() const
+	{
+		return CurrentStackSize == 0 && !Item.IsValid();
+	}
+	
+	bool CanAddItem(const FInventoryItem NewItem) const
+	{
+		return IsEmpty() || (Item.IsSameItem(NewItem) && CurrentStackSize < Item.MaxStackSize);
 	}
 
 	void AddItem(FInventoryItem NewItem, int Amount)
 	{
-		if (!Item.IsValid())
+		if (IsEmpty())
 		{
 			Item = NewItem;
-			Quantity = Amount;
+			CurrentStackSize = FMath::Min(Amount, Item.MaxStackSize);
 		}
-		else if (Item.ID == NewItem.ID)
+		else if (Item.IsSameItem(NewItem))
 		{
-			Quantity += Amount;
+			CurrentStackSize += Amount;
+			CurrentStackSize = FMath::Min(CurrentStackSize + Amount, Item.MaxStackSize);
 		}
+	}
+
+	void ClearSlot()
+	{
+		Item = FInventoryItem();
+		CurrentStackSize = 0;
 	}
 };
